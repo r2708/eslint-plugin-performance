@@ -1,0 +1,27 @@
+{
+  "name": "eslint-plugin-performance",
+  "version": "1.0.0",
+  "description": "ESLint plugin to detect performance anti-patterns",
+  "main": "index.js",
+  "keywords": [
+    "eslint",
+    "eslintplugin",
+    "performance",
+    "optimization",
+    "react",
+    "nodejs"
+  ],
+  "author": "",
+  "license": "MIT",
+  "peerDependencies": {
+    "eslint": ">=7.0.0"
+  },
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "devDependencies": {
+    "@typescript-eslint/parser": "^8.56.1",
+    "eslint": "^10.0.2",
+    "typescript": "^5.9.3"
+  }
+}
