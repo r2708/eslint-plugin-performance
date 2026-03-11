@@ -134,13 +134,9 @@ module.exports = [
 ### no-quadratic-loops
 Detects nested loops that iterate over the same array reference, which causes O(n²) algorithmic complexity.
 
-**Rationale:** Nested loops over the same array create quadratic time complexity, causing exponential performance degradation as data size grows. A 1000-item array becomes 1,000,000 iterations.
-
-
-Detects synchronous blocking calls (fs.*Sync, child_process.*Sync) inside loops that block the event loop repeatedly.
+**Rationale:** Nested loops over the same array create quadratic time complexity, causing exponential performance degradation as data size grows. A 1000-item array becomes 1,000,000 iterations. Detects synchronous blocking calls (fs.*Sync, child_process.*Sync) inside loops that block the event loop repeatedly.
 
 **Rationale:** Synchronous file system and process operations block the Node.js event loop. Calling them in a loop multiplies the blocking time, freezing your application for extended periods.
-
 
 ### no-large-json-parse-in-loop
 Detects JSON.parse() calls inside loops, which causes repeated expensive parsing operations.
@@ -148,7 +144,6 @@ Detects JSON.parse() calls inside loops, which causes repeated expensive parsing
 **Rationale:** JSON parsing is CPU-intensive. Parsing JSON repeatedly in a loop wastes processing time. Parse once before the loop or restructure your data flow.
 
 ### react-no-inline-object-creation
-
 Detects inline object literals, array literals, and arrow functions in JSX props that cause unnecessary re-renders.
 
 **Rationale:** Creating new objects, arrays, or functions inline in JSX creates a new reference on every render. This causes child components to re-render even when the actual values haven't changed, breaking React's reconciliation optimization.
@@ -163,7 +158,6 @@ Detects array cloning operations (spread operator, Array.from(), slice()) when t
 ## Usage
 
 ### Running ESLint
-
 ```bash
 # Standard ESLint run
 npx eslint .
@@ -192,7 +186,6 @@ npx eslint src/**/*.js
 ### Performance Formatter
 
 Use the custom performance formatter to get an aggregated performance score:
-
 ```bash
 npx eslint . --format ./node_modules/eslint-plugin-performance/lib/formatters/performance.js
 ```
