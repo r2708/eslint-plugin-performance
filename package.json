@@ -1,5 +1,5 @@
 {
-  "name": "eslint-plugin-performance",
+  "name": "eslint-plugin-performance-rules",
   "version": "1.0.1",
   "description": "ESLint plugin to detect performance anti-patterns",
   "main": "index.js",
