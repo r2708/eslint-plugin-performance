@@ -9,7 +9,8 @@ ESLint plugin to detect performance anti-patterns in JavaScript and TypeScript c
 - ⚡ Catches expensive JSON parsing in loops
 - ⚛️ Finds React inline object creation causing re-renders
 - 🎯 Detects unnecessary array cloning
-- 📊 Performance score formatter with impact assessment
+- � Detects await inside loops (use Promise.all instead)
+- �📊 Performance score formatter with impact assessment
 - 🔧 Works with JavaScript and TypeScript
 - ✅ Zero runtime dependencies
 
@@ -154,6 +155,22 @@ Detects inline object literals, array literals, and arrow functions in JSX props
 Detects array cloning operations (spread operator, Array.from(), slice()) when the cloned array is never mutated.
 
 **Rationale:** Cloning arrays allocates new memory and copies all elements. If you never mutate the clone, you're wasting memory and CPU cycles. Use the original array reference instead.
+
+### no-await-in-loop
+
+Detects `await` expressions inside loops, which causes sequential execution instead of concurrent.
+
+**Rationale:** Using `await` inside a loop means each async operation waits for the previous one to complete before starting. This is slow. Use `Promise.all()` to run all promises concurrently.
+
+```js
+// ❌ Bad - sequential, slow
+for (const url of urls) {
+  await fetch(url);
+}
+
+// ✅ Good - concurrent, fast
+await Promise.all(urls.map(url => fetch(url)));
+```
 
 ## Usage
 

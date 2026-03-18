@@ -4,7 +4,8 @@ module.exports = {
     'no-sync-in-loop': require('./src/lib/rules/no-sync-in-loop'),
     'no-large-json-parse-in-loop': require('./src/lib/rules/no-large-json-parse-in-loop'),
     'react-no-inline-object-creation': require('./src/lib/rules/react-no-inline-object-creation'),
-    'no-unnecessary-array-clone': require('./src/lib/rules/no-unnecessary-array-clone')
+    'no-unnecessary-array-clone': require('./src/lib/rules/no-unnecessary-array-clone'),
+    'no-await-in-loop': require('./src/lib/rules/no-await-in-loop')
   },
   configs: {
     recommended: {
@@ -14,7 +15,8 @@ module.exports = {
         'performance/no-sync-in-loop': 'warn',
         'performance/no-large-json-parse-in-loop': 'warn',
         'performance/react-no-inline-object-creation': 'warn',
-        'performance/no-unnecessary-array-clone': 'warn'
+        'performance/no-unnecessary-array-clone': 'warn',
+        'performance/no-await-in-loop': 'warn'
       }
     }
   }
