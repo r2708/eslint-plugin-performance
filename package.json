@@ -26,7 +26,6 @@
   "devDependencies": {
     "@typescript-eslint/parser": "^8.56.1",
     "eslint": "^10.0.2",
-    "jest": "^30.3.0",
     "typescript": "^5.9.3"
   }
 }
