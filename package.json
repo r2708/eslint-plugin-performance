@@ -1,6 +1,6 @@
 {
   "name": "eslint-plugin-performance-rules",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "ESLint plugin to detect performance anti-patterns",
   "main": "index.js",
   "scripts": {
