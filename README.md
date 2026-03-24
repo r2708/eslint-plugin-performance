@@ -1,6 +1,6 @@
-# eslint-plugin-performance
+# eslint-plugin-performance-rules
 
-ESLint plugin to detect performance anti-patterns in JavaScript and TypeScript codebases. This plugin helps identify code patterns that may cause runtime performance degradation through static AST analysis.
+ESLint plugin to detect performance anti-patterns in JavaScript and TypeScript codebases. Identifies code patterns that cause runtime performance degradation through static AST analysis.
 
 ## Features
 
@@ -9,104 +9,80 @@ ESLint plugin to detect performance anti-patterns in JavaScript and TypeScript c
 - ⚡ Catches expensive JSON parsing in loops
 - ⚛️ Finds React inline object creation causing re-renders
 - 🎯 Detects unnecessary array cloning
-- � Detects await inside loops (use Promise.all instead)
-- �📊 Performance score formatter with impact assessment
+- ⏳ Detects await inside loops (use Promise.all instead)
+- 🔤 Catches regex compilation inside loops
+- 🌐 Detects DOM queries inside loops
+- 🗺️ Flags O(n) array lookups inside loops (prefer Map/Set)
+- 📦 Detects object spread inside loops
+- 🖥️ Disallows console calls in production code
 - 🔧 Works with JavaScript and TypeScript
 - ✅ Zero runtime dependencies
 
 ## Installation
 
 ```bash
-npm install eslint-plugin-performance --save-dev
+npm install eslint-plugin-performance-rules --save-dev
 ```
 
 ## Configuration
 
-### ESLint Configuration (.eslintrc.json)
+### ESLint v9+ (Flat Config — `eslint.config.js`)
 
-```json
-{
-  "plugins": ["performance"],
-  "extends": ["plugin:performance/recommended"]
-}
+```js
+const perfPlugin = require('eslint-plugin-performance-rules');
+
+module.exports = [
+  perfPlugin.configs.recommended,
+];
 ```
 
 Or configure rules individually:
 
-```json
-{
-  "plugins": ["performance"],
-  "rules": {
-    "performance/no-quadratic-loops": "warn",
-    "performance/no-sync-in-loop": "warn",
-    "performance/no-large-json-parse-in-loop": "warn",
-    "performance/react-no-inline-object-creation": "warn",
-    "performance/no-unnecessary-array-clone": "warn"
-  }
-}
-```
-
-### Flat Config (eslint.config.js)
-
-```javascript
-const performancePlugin = require('eslint-plugin-performance');
+```js
+const perfPlugin = require('eslint-plugin-performance-rules');
 
 module.exports = [
   {
-    plugins: {
-      performance: performancePlugin
-    },
+    plugins: { 'performance-rules': perfPlugin },
     rules: {
-      'performance/no-quadratic-loops': 'warn',
-      'performance/no-sync-in-loop': 'warn',
-      'performance/no-large-json-parse-in-loop': 'warn',
-      'performance/react-no-inline-object-creation': 'warn',
-      'performance/no-unnecessary-array-clone': 'warn'
-    }
-  }
-];
-```
-
-Or use the recommended configuration:
-
-```javascript
-const performancePlugin = require('eslint-plugin-performance');
-
-module.exports = [
-  {
-    plugins: {
-      performance: performancePlugin
+      'performance-rules/no-quadratic-loops': 'warn',
+      'performance-rules/no-await-in-loop': 'warn',
+      'performance-rules/no-regex-in-loop': 'warn',
+      'performance-rules/no-console-in-production': 'warn',
+      // ...add more as needed
     },
-    rules: performancePlugin.configs.recommended.rules
-  }
+  },
 ];
 ```
 
-### TypeScript Configuration
+### ESLint v7/v8 (Legacy Config — `.eslintrc.js`)
 
-For TypeScript projects, configure the parser:
-
-**.eslintrc.json:**
-
-```json
-{
-  "parser": "@typescript-eslint/parser",
-  "parserOptions": {
-    "ecmaVersion": 2020,
-    "sourceType": "module",
-    "ecmaFeatures": {
-      "jsx": true
-    }
-  },
-  "plugins": ["performance"],
-  "extends": ["plugin:performance/recommended"]
-}
+```js
+module.exports = {
+  plugins: ['performance-rules'],
+  extends: ['plugin:performance-rules/recommended-legacy'],
+};
 ```
 
-**eslint.config.js:**
+Or configure rules individually:
 
-```javascript
-const performancePlugin = require('eslint-plugin-performance');
+```js
+module.exports = {
+  plugins: ['performance-rules'],
+  rules: {
+    'performance-rules/no-quadratic-loops': 'warn',
+    'performance-rules/no-await-in-loop': 'warn',
+    'performance-rules/no-regex-in-loop': 'warn',
+    'performance-rules/no-console-in-production': 'warn',
+  },
+};
+```
+
+### TypeScript Projects
+
+```js
+// eslint.config.js
+const perfPlugin = require('eslint-plugin-performance-rules');
 const tsParser = require('@typescript-eslint/parser');
 
 module.exports = [
@@ -114,101 +90,129 @@ module.exports = [
     files: ['**/*.ts', '**/*.tsx'],
     languageOptions: {
       parser: tsParser,
-      parserOptions: {
-        ecmaVersion: 2020,
-        sourceType: 'module',
-        ecmaFeatures: {
-          jsx: true
-        }
-      }
+      parserOptions: { ecmaVersion: 2020, sourceType: 'module' },
     },
-    plugins: {
-      performance: performancePlugin
-    },
-    rules: performancePlugin.configs.recommended.rules
-  }
+    ...perfPlugin.configs.recommended,
+  },
 ];
 ```
 
 ## Rules
 
+| Rule | Description | Default |
+|------|-------------|---------|
+| `no-quadratic-loops` | Detects nested loops over the same array — O(n²) complexity | warn |
+| `no-sync-in-loop` | Detects `fs.*Sync` / `child_process.*Sync` calls inside loops | warn |
+| `no-large-json-parse-in-loop` | Detects `JSON.parse()` inside loops | warn |
+| `react-no-inline-object-creation` | Detects inline objects/arrays/functions in JSX props | warn |
+| `no-unnecessary-array-clone` | Detects array clones that are never mutated | warn |
+| `no-await-in-loop` | Detects `await` inside loops — use `Promise.all()` instead | warn |
+| `no-regex-in-loop` | Detects regex literals / `new RegExp()` inside loops | warn |
+| `no-dom-query-in-loop` | Detects `document.querySelector` and friends inside loops | warn |
+| `prefer-map-over-reduce` | Flags `array.find/filter/includes` inside loops — O(n²) | warn |
+| `no-object-spread-in-loop` | Detects `{...obj}` / `Object.assign({}, ...)` inside loops | warn |
+| `no-console-in-production` | Disallows `console.*` calls (except `error`/`warn` by default) | warn |
+
+## Rule Details
+
 ### no-quadratic-loops
-Detects nested loops that iterate over the same array reference, which causes O(n²) algorithmic complexity.
-
-**Rationale:** Nested loops over the same array create quadratic time complexity, causing exponential performance degradation as data size grows. A 1000-item array becomes 1,000,000 iterations. Detects synchronous blocking calls (fs.*Sync, child_process.*Sync) inside loops that block the event loop repeatedly.
-
-**Rationale:** Synchronous file system and process operations block the Node.js event loop. Calling them in a loop multiplies the blocking time, freezing your application for extended periods.
-
-### no-large-json-parse-in-loop
-Detects JSON.parse() calls inside loops, which causes repeated expensive parsing operations.
-
-**Rationale:** JSON parsing is CPU-intensive. Parsing JSON repeatedly in a loop wastes processing time. Parse once before the loop or restructure your data flow.
-
-### react-no-inline-object-creation
-Detects inline object literals, array literals, and arrow functions in JSX props that cause unnecessary re-renders.
-
-**Rationale:** Creating new objects, arrays, or functions inline in JSX creates a new reference on every render. This causes child components to re-render even when the actual values haven't changed, breaking React's reconciliation optimization.
-
-
-### no-unnecessary-array-clone
-
-Detects array cloning operations (spread operator, Array.from(), slice()) when the cloned array is never mutated.
-
-**Rationale:** Cloning arrays allocates new memory and copies all elements. If you never mutate the clone, you're wasting memory and CPU cycles. Use the original array reference instead.
-
-### no-await-in-loop
-
-Detects `await` expressions inside loops, which causes sequential execution instead of concurrent.
-
-**Rationale:** Using `await` inside a loop means each async operation waits for the previous one to complete before starting. This is slow. Use `Promise.all()` to run all promises concurrently.
-
 ```js
-// ❌ Bad - sequential, slow
-for (const url of urls) {
-  await fetch(url);
+// Bad
+for (const a of arr) {
+  for (const b of arr) { } // O(n²)
 }
 
-// ✅ Good - concurrent, fast
+// Good
+const set = new Set(arr);
+for (const a of arr) { set.has(a); }
+```
+
+### no-await-in-loop
+```js
+// Bad
+for (const url of urls) {
+  await fetch(url); // sequential
+}
+
+// Good
 await Promise.all(urls.map(url => fetch(url)));
+```
+
+### no-regex-in-loop
+```js
+// Bad
+for (const s of strings) {
+  /foo/.test(s); // recompiled every iteration
+}
+
+// Good
+const re = /foo/;
+for (const s of strings) { re.test(s); }
+```
+
+### no-dom-query-in-loop
+```js
+// Bad
+for (const item of items) {
+  document.querySelector('.list').appendChild(item);
+}
+
+// Good
+const list = document.querySelector('.list');
+for (const item of items) { list.appendChild(item); }
+```
+
+### prefer-map-over-reduce
+```js
+// Bad — O(n²)
+for (const id of ids) {
+  users.find(u => u.id === id);
+}
+
+// Good — O(1) lookup
+const userMap = new Map(users.map(u => [u.id, u]));
+for (const id of ids) { userMap.get(id); }
+```
+
+### no-object-spread-in-loop
+```js
+// Bad — new object every iteration
+for (const item of arr) {
+  const copy = { ...item };
+}
+
+// Good
+const target = {};
+for (const item of arr) { Object.assign(target, item); }
+```
+
+### no-console-in-production
+```js
+// Bad
+console.log('debug value:', x);
+
+// Good
+console.error('something broke'); // error/warn allowed by default
+```
+
+Configure allowed methods:
+```js
+// eslint.config.js
+rules: {
+  'performance-rules/no-console-in-production': ['warn', { allow: ['error', 'warn', 'info'] }]
+}
 ```
 
 ## Usage
 
-### Running ESLint
 ```bash
-# Standard ESLint run
+# Run ESLint
 npx eslint .
 
-# With auto-fix (where applicable)
-npx eslint . --fix
-
-# Check specific files
-npx eslint src/**/*.js
+# With performance formatter
+npx eslint . --format ./node_modules/eslint-plugin-performance-rules/src/lib/formatters/performance.js
 ```
-
-### Example CLI Output
-
-```
-/project/src/utils/data.js
-  12:3  warning  Nested loop iterates over same array, causing O(n²) complexity  performance/no-quadratic-loops
-  28:5  warning  Synchronous blocking call inside loop blocks event loop         performance/no-sync-in-loop
-
-/project/src/components/UserList.jsx
-  15:23  warning  Inline object creation in JSX prop causes re-renders  performance/react-no-inline-object-creation
-  16:21  warning  Inline arrow function in JSX prop causes re-renders   performance/react-no-inline-object-creation
-
-✖ 4 problems (0 errors, 4 warnings)
-```
-
-### Performance Formatter
-
-Use the custom performance formatter to get an aggregated performance score:
-```bash
-npx eslint . --format ./node_modules/eslint-plugin-performance/lib/formatters/performance.js
-```
-
-## Contributing
-Contributions are welcome! Please open an issue or submit a pull request on GitHub.
 
 ## License
+
 MIT
