@@ -9,6 +9,7 @@
   },
   "keywords": [
     "eslint",
+    "eslint-plugin",
     "eslintplugin",
     "performance",
     "optimization",
