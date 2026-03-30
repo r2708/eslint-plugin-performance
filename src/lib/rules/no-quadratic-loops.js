@@ -1,4 +1,4 @@
-const { ARRAY_METHODS } = require('../utils');
+const { ARRAY_METHODS, addLoopListeners } = require('../utils');
 
 module.exports = {
   meta: {
@@ -130,45 +130,28 @@ module.exports = {
       loopStack.pop();
     }
 
-    return {
-      // Traditional loop statements
-      ForStatement: onLoopEnter,
-      'ForStatement:exit': onLoopExit,
-      
-      ForOfStatement: onLoopEnter,
-      'ForOfStatement:exit': onLoopExit,
-      
-      ForInStatement: onLoopEnter,
-      'ForInStatement:exit': onLoopExit,
-      
-      WhileStatement: onLoopEnter,
-      'WhileStatement:exit': onLoopExit,
-      
-      DoWhileStatement: onLoopEnter,
-      'DoWhileStatement:exit': onLoopExit,
+    const listeners = {};
+    addLoopListeners(listeners, onLoopEnter, onLoopExit);
 
-      // Array method calls (forEach, map, filter, etc.)
-      CallExpression(node) {
-        if (node.callee && node.callee.type === 'MemberExpression') {
-          const methodName = node.callee.property.name;
-          const arrayMethods = ['forEach', 'map', 'filter', 'reduce', 'some', 'every', 'find'];
-          
-          if (arrayMethods.includes(methodName)) {
-            onLoopEnter(node);
-          }
-        }
-      },
-      
-      'CallExpression:exit'(node) {
-        if (node.callee && node.callee.type === 'MemberExpression') {
-          const methodName = node.callee.property.name;
-          const arrayMethods = ['forEach', 'map', 'filter', 'reduce', 'some', 'every', 'find'];
-          
-          if (arrayMethods.includes(methodName)) {
-            onLoopExit();
-          }
+    // Array method calls (forEach, map, filter, etc.) also act as loops
+    listeners.CallExpression = (node) => {
+      if (node.callee && node.callee.type === 'MemberExpression') {
+        const methodName = node.callee.property.name;
+        if (ARRAY_METHODS.includes(methodName)) {
+          onLoopEnter(node);
         }
       }
     };
+
+    listeners['CallExpression:exit'] = (node) => {
+      if (node.callee && node.callee.type === 'MemberExpression') {
+        const methodName = node.callee.property.name;
+        if (ARRAY_METHODS.includes(methodName)) {
+          onLoopExit();
+        }
+      }
+    };
+
+    return listeners;
   }
 };

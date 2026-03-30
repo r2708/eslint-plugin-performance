@@ -30,4 +30,4 @@ function addLoopListeners(listeners, onEnter, onExit) {
   }
 }
 
-module.exports = { ARRAY_METHODS, LOOP_NODES, addLoopListeners };
+module.exports = { ARRAY_METHODS, addLoopListeners };

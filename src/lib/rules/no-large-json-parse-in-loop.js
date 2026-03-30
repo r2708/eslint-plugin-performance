@@ -1,10 +1,10 @@
-const { ARRAY_METHODS } = require('../utils');
+const { ARRAY_METHODS, addLoopListeners } = require('../utils');
 
 module.exports = {
   meta: {
     type: 'problem',
     docs: {
-      description: 'Detect JSON.parse() calls inside loops',
+      description: 'Detect JSON.parse() and JSON.stringify() calls inside loops',
       category: 'performance',
       recommended: true
     },
@@ -13,99 +13,57 @@ module.exports = {
   create(context) {
     let loopDepth = 0;
 
+    const JSON_EXPENSIVE_METHODS = new Set(['parse', 'stringify']);
+
     /**
-     * Check if a CallExpression node is a JSON.parse call
+     * If the call is JSON.parse() or JSON.stringify(), returns the method name; otherwise null.
      * @param {ASTNode} node - The CallExpression node
-     * @returns {boolean} - True if it's a JSON.parse call
+     * @returns {string|null}
      */
-    function isJSONParse(node) {
+    function getExpensiveJSONMethod(node) {
       const { callee } = node;
-      
-      // Must be a MemberExpression (e.g., JSON.parse)
-      if (!callee || callee.type !== 'MemberExpression') {
-        return false;
+      if (!callee || callee.type !== 'MemberExpression') return null;
+
+      const { object, property } = callee;
+      if (object.type === 'Identifier' && object.name === 'JSON' &&
+          property.type === 'Identifier' && JSON_EXPENSIVE_METHODS.has(property.name)) {
+        return property.name;
       }
+      return null;
+    }
 
-      // Get the object and property nodes
-      const objectNode = callee.object;
-      const propertyNode = callee.property;
+    function onLoopEnter() { loopDepth++; }
+    function onLoopExit() { loopDepth--; }
 
-      // Check for JSON.parse pattern
-      if (objectNode.type === 'Identifier' && propertyNode.type === 'Identifier') {
-        const objectName = objectNode.name;
-        const propertyName = propertyNode.name;
+    const listeners = {};
+    addLoopListeners(listeners, onLoopEnter, onLoopExit);
 
-        if (objectName === 'JSON' && propertyName === 'parse') {
-          return true;
+    listeners.CallExpression = (node) => {
+      if (node.callee && node.callee.type === 'MemberExpression') {
+        const methodName = node.callee.property.name;
+        if (ARRAY_METHODS.includes(methodName)) {
+          onLoopEnter();
         }
       }
 
-      return false;
-    }
-
-    /**
-     * Handle loop entry - increment depth counter
-     */
-    function onLoopEnter() {
-      loopDepth++;
-    }
-
-    /**
-     * Handle loop exit - decrement depth counter
-     */
-    function onLoopExit() {
-      loopDepth--;
-    }
-
-    return {
-      // Traditional loop statements
-      ForStatement: onLoopEnter,
-      'ForStatement:exit': onLoopExit,
-      
-      ForOfStatement: onLoopEnter,
-      'ForOfStatement:exit': onLoopExit,
-      
-      ForInStatement: onLoopEnter,
-      'ForInStatement:exit': onLoopExit,
-      
-      WhileStatement: onLoopEnter,
-      'WhileStatement:exit': onLoopExit,
-      
-      DoWhileStatement: onLoopEnter,
-      'DoWhileStatement:exit': onLoopExit,
-
-      // Array method calls (forEach, map, filter, etc.)
-      CallExpression(node) {
-        // Check if this is an array method that acts as a loop
-        if (node.callee && node.callee.type === 'MemberExpression') {
-          const methodName = node.callee.property.name;
-          const arrayMethods = ARRAY_METHODS;
-          
-          if (arrayMethods.includes(methodName)) {
-            onLoopEnter();
-          }
-        }
-
-        // Check for JSON.parse calls inside loops
-        if (loopDepth > 0 && isJSONParse(node)) {
+      if (loopDepth > 0) {
+        const jsonMethod = getExpensiveJSONMethod(node);
+        if (jsonMethod) {
           context.report({
             node,
-            message: 'JSON.parse() inside loop causes repeated expensive parsing operations'
+            message: `JSON.${jsonMethod}() inside a loop causes repeated expensive serialization on every iteration`
           });
-        }
-      },
-      
-      'CallExpression:exit'(node) {
-        // Handle array method exit
-        if (node.callee && node.callee.type === 'MemberExpression') {
-          const methodName = node.callee.property.name;
-          const arrayMethods = ARRAY_METHODS;
-          
-          if (arrayMethods.includes(methodName)) {
-            onLoopExit();
-          }
         }
       }
     };
+
+    listeners['CallExpression:exit'] = (node) => {
+      if (node.callee && node.callee.type === 'MemberExpression' &&
+          ARRAY_METHODS.includes(node.callee.property.name)) {
+        onLoopExit();
+      }
+    };
+
+    return listeners;
   }
 };

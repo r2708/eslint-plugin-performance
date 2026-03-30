@@ -34,10 +34,10 @@ module.exports = {
           callee.object?.name === 'Object' &&
           callee.property?.name === 'assign') {
         const firstArg = node.arguments[0];
-        if (firstArg?.type === 'ObjectExpression' && firstArg.properties.length === 0) {
+        if (firstArg?.type === 'ObjectExpression') {
           context.report({
             node,
-            message: 'Object.assign({}, ...) inside a loop allocates a new object on every iteration. Consider pre-allocating the target object outside the loop.'
+            message: 'Object.assign({...}, ...) inside a loop allocates a new object on every iteration. Pre-allocate the target object outside the loop.'
           });
         }
       }

@@ -4,7 +4,7 @@ module.exports = {
   meta: {
     type: 'suggestion',
     docs: {
-      description: 'Prefer Map/object lookup O(1) over array.find/filter O(n) for repeated lookups',
+      description: 'Detect O(n) array lookups (find/filter/includes/indexOf/findIndex) inside loops — use a Map or Set for O(1) lookups',
       category: 'performance',
       recommended: true
     },

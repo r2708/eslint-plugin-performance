@@ -7,7 +7,7 @@ const rules = {
   'no-await-in-loop': require('./src/lib/rules/no-await-in-loop'),
   'no-regex-in-loop': require('./src/lib/rules/no-regex-in-loop'),
   'no-dom-query-in-loop': require('./src/lib/rules/no-dom-query-in-loop'),
-  'prefer-map-over-reduce': require('./src/lib/rules/prefer-map-over-reduce'),
+  'no-linear-search-in-loop': require('./src/lib/rules/no-linear-search-in-loop'),
   'no-object-spread-in-loop': require('./src/lib/rules/no-object-spread-in-loop'),
   'no-console-in-production': require('./src/lib/rules/no-console-in-production'),
 };

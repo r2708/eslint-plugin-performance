@@ -103,13 +103,13 @@ module.exports = [
 |------|-------------|---------|
 | `no-quadratic-loops` | Detects nested loops over the same array — O(n²) complexity | warn |
 | `no-sync-in-loop` | Detects `fs.*Sync` / `child_process.*Sync` calls inside loops | warn |
-| `no-large-json-parse-in-loop` | Detects `JSON.parse()` inside loops | warn |
+| `no-large-json-parse-in-loop` | Detects `JSON.parse()` and `JSON.stringify()` inside loops | warn |
 | `react-no-inline-object-creation` | Detects inline objects/arrays/functions in JSX props | warn |
 | `no-unnecessary-array-clone` | Detects array clones that are never mutated | warn |
 | `no-await-in-loop` | Detects `await` inside loops — use `Promise.all()` instead | warn |
 | `no-regex-in-loop` | Detects regex literals / `new RegExp()` inside loops | warn |
 | `no-dom-query-in-loop` | Detects `document.querySelector` and friends inside loops | warn |
-| `prefer-map-over-reduce` | Flags `array.find/filter/includes` inside loops — O(n²) | warn |
+| `no-linear-search-in-loop` | Flags O(n) array lookups (`find/filter/includes/indexOf/findIndex`) inside loops | warn |
 | `no-object-spread-in-loop` | Detects `{...obj}` / `Object.assign({}, ...)` inside loops | warn |
 | `no-console-in-production` | Disallows `console.*` calls (except `error`/`warn` by default) | warn |
 
@@ -162,14 +162,14 @@ const list = document.querySelector('.list');
 for (const item of items) { list.appendChild(item); }
 ```
 
-### prefer-map-over-reduce
+### no-linear-search-in-loop
 ```js
-// Bad — O(n²)
+// Bad — O(n²): find/filter/includes/indexOf/findIndex inside a loop
 for (const id of ids) {
   users.find(u => u.id === id);
 }
 
-// Good — O(1) lookup
+// Good — O(1) lookup with a Map built once outside the loop
 const userMap = new Map(users.map(u => [u.id, u]));
 for (const id of ids) { userMap.get(id); }
 ```
