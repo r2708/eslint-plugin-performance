@@ -1,3 +1,5 @@
+const { ARRAY_METHODS, addLoopListeners } = require('../utils');
+
 module.exports = {
   meta: {
     type: 'problem',
@@ -14,27 +16,16 @@ module.exports = {
     function onLoopEnter() { loopDepth++; }
     function onLoopExit() { loopDepth--; }
 
-    const arrayMethods = ['forEach', 'map', 'filter', 'reduce', 'some', 'every', 'find'];
-
-    const loopNodes = [
-      'ForStatement', 'ForOfStatement', 'ForInStatement',
-      'WhileStatement', 'DoWhileStatement'
-    ];
-
     const listeners = {};
-
-    for (const loop of loopNodes) {
-      listeners[loop] = onLoopEnter;
-      listeners[`${loop}:exit`] = onLoopExit;
-    }
+    addLoopListeners(listeners, onLoopEnter, onLoopExit);
 
     // Single CallExpression handler — handles both array method loop tracking
     // and Object.assign({}, ...) detection. SpreadElement handles {...obj}.
     listeners.CallExpression = (node) => {
       const { callee } = node;
-      if (!callee || callee.type !== 'MemberExpression') return;
+      if (!callee || callee.type !== 'MemberExpression' || callee.computed) return;
 
-      if (arrayMethods.includes(callee.property.name)) {
+      if (ARRAY_METHODS.includes(callee.property?.name)) {
         onLoopEnter();
         return;
       }
@@ -54,7 +45,8 @@ module.exports = {
 
     listeners['CallExpression:exit'] = (node) => {
       if (node.callee?.type === 'MemberExpression' &&
-          arrayMethods.includes(node.callee.property.name)) {
+          !node.callee.computed &&
+          ARRAY_METHODS.includes(node.callee.property?.name)) {
         onLoopExit();
       }
     };

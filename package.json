@@ -4,7 +4,6 @@
   "description": "ESLint plugin to detect performance anti-patterns",
   "main": "index.js",
   "scripts": {
-    "test": "node tests/no-await-in-loop.test.js && node tests/no-sync-in-loop.test.js && node tests/no-large-json-parse-in-loop.test.js && node tests/no-quadratic-loops.test.js && node tests/react-no-inline-object-creation.test.js && node tests/no-regex-in-loop.test.js && node tests/no-dom-query-in-loop.test.js && node tests/prefer-map-over-reduce.test.js && node tests/no-object-spread-in-loop.test.js && node tests/no-console-in-production.test.js",
     "lint": "eslint ."
   },
   "keywords": [

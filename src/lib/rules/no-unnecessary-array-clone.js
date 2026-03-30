@@ -146,17 +146,17 @@ module.exports = {
 
         // Check if the variable is mutated
         if (!isVariableMutated(variable)) {
-          const sourceCode2 = context.sourceCode || context.getSourceCode();
-          const initText = sourceCode2.getText(node.init);
-
           // Extract the original array from the clone pattern
           let originalArray = null;
-          if (node.init.type === 'ArrayExpression' && node.init.elements[0].type === 'SpreadElement') {
-            originalArray = sourceCode2.getText(node.init.elements[0].argument);
+          if (node.init.type === 'ArrayExpression' &&
+              node.init.elements.length > 0 &&
+              node.init.elements[0] &&
+              node.init.elements[0].type === 'SpreadElement') {
+            originalArray = sourceCode.getText(node.init.elements[0].argument);
           } else if (node.init.type === 'CallExpression' && node.init.callee.property && node.init.callee.property.name === 'from') {
-            originalArray = sourceCode2.getText(node.init.arguments[0]);
+            originalArray = sourceCode.getText(node.init.arguments[0]);
           } else if (node.init.type === 'CallExpression' && node.init.callee.property && node.init.callee.property.name === 'slice') {
-            originalArray = sourceCode2.getText(node.init.callee.object);
+            originalArray = sourceCode.getText(node.init.callee.object);
           }
 
           context.report({

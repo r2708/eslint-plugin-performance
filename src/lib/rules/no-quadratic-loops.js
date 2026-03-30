@@ -1,3 +1,5 @@
+const { ARRAY_METHODS } = require('../utils');
+
 module.exports = {
   meta: {
     type: 'problem',
@@ -52,7 +54,7 @@ module.exports = {
           // array.forEach(), array.map(), etc.
           if (node.callee && node.callee.type === 'MemberExpression') {
             const methodName = node.callee.property.name;
-            const arrayMethods = ['forEach', 'map', 'filter', 'reduce', 'some', 'every', 'find'];
+            const arrayMethods = ARRAY_METHODS;
             
             if (arrayMethods.includes(methodName)) {
               return node.callee.object;

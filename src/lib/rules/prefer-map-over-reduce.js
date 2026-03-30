@@ -1,3 +1,5 @@
+const { ARRAY_METHODS, addLoopListeners } = require('../utils');
+
 module.exports = {
   meta: {
     type: 'suggestion',
@@ -16,25 +18,15 @@ module.exports = {
 
     const LOOKUP_METHODS = new Set(['find', 'findIndex', 'filter', 'includes', 'indexOf']);
 
-    const arrayMethods = ['forEach', 'map', 'filter', 'reduce', 'some', 'every', 'find'];
-
-    const loopNodes = [
-      'ForStatement', 'ForOfStatement', 'ForInStatement',
-      'WhileStatement', 'DoWhileStatement'
-    ];
-
     const listeners = {};
-
-    for (const loop of loopNodes) {
-      listeners[loop] = onLoopEnter;
-      listeners[`${loop}:exit`] = onLoopExit;
-    }
+    addLoopListeners(listeners, onLoopEnter, onLoopExit);
 
     listeners.CallExpression = (node) => {
       const { callee } = node;
-      if (!callee || callee.type !== 'MemberExpression') return;
+      if (!callee || callee.type !== 'MemberExpression' || callee.computed) return;
 
-      const method = callee.property.name;
+      const method = callee.property?.name;
+      if (!method) return;
 
       // Flag O(n) lookups *before* potentially entering a new loop scope,
       // so a top-level arr.find() doesn't flag itself.
@@ -46,14 +38,15 @@ module.exports = {
       }
 
       // Track array iteration methods as loop scopes
-      if (arrayMethods.includes(method)) {
+      if (ARRAY_METHODS.includes(method)) {
         onLoopEnter();
       }
     };
 
     listeners['CallExpression:exit'] = (node) => {
       if (node.callee?.type === 'MemberExpression' &&
-          arrayMethods.includes(node.callee.property.name)) {
+          !node.callee.computed &&
+          ARRAY_METHODS.includes(node.callee.property?.name)) {
         onLoopExit();
       }
     };

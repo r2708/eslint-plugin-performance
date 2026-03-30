@@ -1,3 +1,5 @@
+const { ARRAY_METHODS, addLoopListeners } = require('../utils');
+
 module.exports = {
   meta: {
     type: 'problem',
@@ -14,30 +16,21 @@ module.exports = {
     function onLoopEnter() { loopDepth++; }
     function onLoopExit() { loopDepth--; }
 
-    const loopNodes = [
-      'ForStatement', 'ForOfStatement', 'ForInStatement',
-      'WhileStatement', 'DoWhileStatement'
-    ];
-
     const listeners = {};
-
-    for (const loop of loopNodes) {
-      listeners[loop] = onLoopEnter;
-      listeners[`${loop}:exit`] = onLoopExit;
-    }
-
-    const arrayMethods = ['forEach', 'map', 'filter', 'reduce', 'some', 'every', 'find'];
+    addLoopListeners(listeners, onLoopEnter, onLoopExit);
 
     listeners.CallExpression = (node) => {
       if (node.callee?.type === 'MemberExpression' &&
-          arrayMethods.includes(node.callee.property.name)) {
+          !node.callee.computed &&
+          ARRAY_METHODS.includes(node.callee.property?.name)) {
         onLoopEnter();
       }
     };
 
     listeners['CallExpression:exit'] = (node) => {
       if (node.callee?.type === 'MemberExpression' &&
-          arrayMethods.includes(node.callee.property.name)) {
+          !node.callee.computed &&
+          ARRAY_METHODS.includes(node.callee.property?.name)) {
         onLoopExit();
       }
     };

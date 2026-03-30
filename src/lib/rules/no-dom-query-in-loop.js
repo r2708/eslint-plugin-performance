@@ -1,3 +1,5 @@
+const { ARRAY_METHODS, addLoopListeners } = require('../utils');
+
 module.exports = {
   meta: {
     type: 'problem',
@@ -25,7 +27,8 @@ module.exports = {
 
     function isDomQuery(callee) {
       if (callee.type !== 'MemberExpression') return false;
-      if (!DOM_QUERY_METHODS.has(callee.property.name)) return false;
+      if (callee.computed) return false;
+      if (!DOM_QUERY_METHODS.has(callee.property?.name)) return false;
       const obj = callee.object;
       // Only flag when called on a known DOM root (document, window)
       // or on a chained member expression (e.g. document.body.querySelector)
@@ -39,31 +42,21 @@ module.exports = {
       return false;
     }
 
-    const arrayMethods = ['forEach', 'map', 'filter', 'reduce', 'some', 'every', 'find'];
-
-    const loopNodes = [
-      'ForStatement', 'ForOfStatement', 'ForInStatement',
-      'WhileStatement', 'DoWhileStatement'
-    ];
-
     const listeners = {};
-
-    for (const loop of loopNodes) {
-      listeners[loop] = onLoopEnter;
-      listeners[`${loop}:exit`] = onLoopExit;
-    }
+    addLoopListeners(listeners, onLoopEnter, onLoopExit);
 
     listeners.CallExpression = (node) => {
       const { callee } = node;
 
       if (callee?.type === 'MemberExpression' &&
-          arrayMethods.includes(callee.property.name)) {
+          !callee.computed &&
+          ARRAY_METHODS.includes(callee.property?.name)) {
         onLoopEnter();
         return;
       }
 
-      if (loopDepth > 0 && callee?.type === 'MemberExpression') {
-        const method = callee.property.name;
+      if (loopDepth > 0 && callee?.type === 'MemberExpression' && !callee.computed) {
+        const method = callee.property?.name;
         if (DOM_QUERY_METHODS.has(method) && isDomQuery(callee)) {
           context.report({
             node,
@@ -75,7 +68,8 @@ module.exports = {
 
     listeners['CallExpression:exit'] = (node) => {
       if (node.callee?.type === 'MemberExpression' &&
-          arrayMethods.includes(node.callee.property.name)) {
+          !node.callee.computed &&
+          ARRAY_METHODS.includes(node.callee.property?.name)) {
         onLoopExit();
       }
     };

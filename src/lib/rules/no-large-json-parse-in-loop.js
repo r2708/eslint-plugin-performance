@@ -1,3 +1,5 @@
+const { ARRAY_METHODS } = require('../utils');
+
 module.exports = {
   meta: {
     type: 'problem',
@@ -77,7 +79,7 @@ module.exports = {
         // Check if this is an array method that acts as a loop
         if (node.callee && node.callee.type === 'MemberExpression') {
           const methodName = node.callee.property.name;
-          const arrayMethods = ['forEach', 'map', 'filter', 'reduce', 'some', 'every', 'find'];
+          const arrayMethods = ARRAY_METHODS;
           
           if (arrayMethods.includes(methodName)) {
             onLoopEnter();
@@ -97,7 +99,7 @@ module.exports = {
         // Handle array method exit
         if (node.callee && node.callee.type === 'MemberExpression') {
           const methodName = node.callee.property.name;
-          const arrayMethods = ['forEach', 'map', 'filter', 'reduce', 'some', 'every', 'find'];
+          const arrayMethods = ARRAY_METHODS;
           
           if (arrayMethods.includes(methodName)) {
             onLoopExit();
